@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Precificação de Produtos</title>
+<style>
+:root{--bg:#fff7f9;--card:#ffffff;--ink:#2b1d22;--mut:#7a6a70;--line:#ecd9df;--acc:#be466e;--accink:#ffffff;--soft:#fbe9ef;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1317;--card:#261b21;--ink:#f6e9ee;--mut:#b9a5ad;--line:#3d2c34;--acc:#e0709a;--accink:#2b1019;--soft:#33232b;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1b1317;--card:#261b21;--ink:#f6e9ee;--mut:#b9a5ad;--line:#3d2c34;--acc:#e0709a;--accink:#2b1019;--soft:#33232b;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:620px;margin:0 auto;padding:18px 14px 40px}
+h1{font-size:22px;margin:4px 0 2px}
+.sub{color:var(--mut);margin:0 0 16px;font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+h2{font-size:15px;margin:0 0 8px;color:var(--acc)}
+h2 small{color:var(--mut);font-weight:400}
+.desc{background:var(--soft);border-radius:10px;padding:9px 11px;margin:0 0 12px;font-size:13px;line-height:1.45}
+.desc i{display:block;margin-top:5px;color:var(--mut);font-style:normal}
+label,.l{display:block;font-size:12px;color:var(--mut);margin:8px 0 3px}
+input,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 10px;min-width:0}
+input:focus,select:focus{outline:2px solid var(--acc);outline-offset:0}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pair{display:flex;gap:5px}.pair select{width:68px;flex:none;padding:9px 4px}
+.item{padding:10px 0 12px;border-top:1px solid var(--line)}
+.item:first-child{border-top:0;padding-top:0}
+.item .m{margin-bottom:2px}
+.line{display:grid;grid-template-columns:1fr 38px;gap:10px;align-items:end}
+.x{border:1px solid var(--line);background:transparent;color:var(--mut);border-radius:9px;height:40px;font-size:18px;cursor:pointer}
+.out{font-size:13px;color:var(--acc);margin-top:6px;min-height:16px}
+.add{width:100%;border:1px dashed var(--acc);background:transparent;color:var(--acc);border-radius:10px;padding:10px;font:inherit;cursor:pointer}
+.sum div{display:flex;justify-content:space-between;padding:5px 0;font-size:15px}
+.sum .mut{color:var(--mut)}
+.sum .big{border-top:1px solid var(--line);margin-top:6px;padding-top:10px;font-weight:700;font-size:18px}
+.btn{width:100%;margin-top:6px;border:0;border-radius:12px;background:var(--acc);color:var(--accink);font:inherit;font-weight:700;padding:14px;cursor:pointer}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sec{background:transparent;color:var(--acc);border:1px solid var(--acc)}
+.prod{display:flex;gap:8px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.prod:first-child{border-top:0}
+.prod .t{flex:1;min-width:0}.prod b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prod span{font-size:13px;color:var(--mut)}
+.sm{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:9px;padding:8px 10px;font:inherit;font-size:13px;cursor:pointer}
+.sm.del{color:var(--acc)}
+#msg{min-height:20px;margin-top:10px;font-size:14px;color:var(--mut);text-align:center}
+</style>
+</head>
+<body>
+<main>
+<h1>Precificação de Produtos</h1>
+<p class="sub">Calcule o preço de venda de cada produto e deixe salvo para consultar quando precisar.</p>
+
+<section class="card">
+<h2>Produtos cadastrados</h2>
+<p class="desc"><b>O que é:</b> a lista dos produtos que você já salvou. Toque em Abrir para ver ou atualizar os valores depois, por exemplo quando um ingrediente subir de preço.<i>Exemplo: Brigadeiro gourmet, R$ 1,95 por unidade.</i></p>
+<div id="lista"></div>
+<button class="add" id="novo" type="button">+ Novo produto</button>
+</section>
+
+<section class="card" id="editor">
+<h2>1. Produto <small id="modo">(novo)</small></h2>
+<p class="desc"><b>O que colocar:</b> o nome do produto e quantas unidades a receita rende.<i>Exemplo: Brigadeiro gourmet, rende 30 unidades.</i></p>
+<label for="nome">Nome do produto</label><input id="nome" placeholder="Brigadeiro gourmet">
+<label for="rend">A receita rende quantas unidades?</label><input id="rend" value="1" inputmode="numeric" placeholder="30">
+</section>
+
+<section class="card">
+<h2>2. Ingredientes da receita inteira</h2>
+<p class="desc"><b>O que colocar:</b> cada ingrediente da receita toda. Informe quanto você <b>usou</b>, quanto <b>veio na embalagem</b> e quanto <b>pagou</b> nela. O app calcula só a parte usada. Se deixar “veio na embalagem” vazio, ele considera o valor inteiro.<i>Exemplo: Leite condensado, usei 395 g, veio 395 g, paguei R$ 4,79. O custo na receita será R$ 4,79.</i></p>
+<div id="mat"></div>
+<button class="add" id="addmat" type="button">+ Adicionar ingrediente</button>
+</section>
+
+<section class="card">
+<h2>3. Embalagem e adicionais de 1 unidade</h2>
+<p class="desc"><b>O que colocar:</b> o que vai em cada unidade vendida: forminha, caixinha, saquinho, etiqueta, fita. Informe quanto usa em 1 unidade, quanto veio no pacote e quanto pagou.<i>Exemplo: Forminha, usei 1 un, vieram 100 un, paguei R$ 8,00. O custo por unidade será R$ 0,08.</i></p>
+<div id="ext"></div>
+<button class="add" id="addext" type="button">+ Adicionar item</button>
+</section>
+
+<section class="card sum">
+<h2>4. Preço de venda</h2>
+<p class="desc"><b>O que é:</b> como o preço foi formado. O custo da receita é dividido pelo rendimento, soma a embalagem e entram sozinhos 30% de despesas da casa e 50% de lucro.<i>Exemplo: receita R$ 30,00 ÷ 30 unidades = R$ 1,00, mais R$ 0,08 de embalagem = R$ 1,08. Com 30% e 50%, o preço é R$ 1,95 por unidade.</i></p>
+<div class="mut"><span>Ingredientes da receita</span><b id="s1">R$ 0,00</b></div>
+<div class="mut"><span>Ingredientes por unidade</span><b id="s2">R$ 0,00</b></div>
+<div class="mut"><span>Embalagem e adicionais por unidade</span><b id="s3">R$ 0,00</b></div>
+<div><span>Custo de 1 unidade</span><b id="s4">R$ 0,00</b></div>
+<div class="mut"><span>+ Despesas da casa (30%)</span><b id="s5">R$ 0,00</b></div>
+<div class="mut"><span>+ Lucro (50%)</span><b id="s6">R$ 0,00</b></div>
+<div class="big"><span>Preço de venda por unidade</span><b id="s7">R$ 0,00</b></div>
+</section>
+
+<button class="btn" id="save" type="button" disabled>Salvar produto</button>
+<div id="msg"></div>
+</main>
+
+<script>
+(function(){
+var DESP=0.30, LUCRO=0.50, KEY="pp_produtos";
+var F={g:1,kg:1000,ml:1,l:1000,un:1}, FAM={g:"m",kg:"m",ml:"v",l:"v",un:"u"};
+var UN=["g","kg","ml","l","un"];
+var PH={mat:["Leite condensado","395","395","4,79"],ext:["Forminha","1","100","8,00"]};
+var $=function(s){return document.querySelector(s)};
+function newRow(k){return {m:"",a:"",ua:k==="ext"?"un":"g",b:"",ub:k==="ext"?"un":"g",v:"",out:null}}
+function blank(){var c={id:null,nome:"",rend:"1",mat:[],ext:[]},i;for(i=0;i<3;i++)c.mat.push(newRow("mat"));for(i=0;i<2;i++)c.ext.push(newRow("ext"));return c}
+var cur=blank();
+
+function num(v){
+  v=String(v==null?"":v).replace(/[^\d.,]/g,"");
+  if(v.indexOf(",")>-1) v=v.replace(/\./g,"").replace(",",".");
+  var n=parseFloat(v); return isNaN(n)?0:n;
+}
+function brl(n){return n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}).replace(/\u00a0/g," ")}
+function msg(t){$("#msg").textContent=t||""}
+
+function rowCost(r){
+  var v=num(r.v), a=num(r.a), b=num(r.b);
+  if(v<=0) return {c:0,t:""};
+  if(!b) return {c:v,t:"Custo: "+brl(v)+" (valor inteiro)"};
+  if(!a) return {c:0,t:"Informe quanto você usou."};
+  if(FAM[r.ua]!==FAM[r.ub]) return {c:0,t:"Unidades diferentes: não dá para comparar, por exemplo, g com ml."};
+  var c=v*(a*F[r.ua])/(b*F[r.ub]);
+  return {c:c,t:"Custo: "+brl(c)};
+}
+function secCost(list,upd){
+  var t=0; list.forEach(function(r){var x=rowCost(r); t+=x.c; if(upd&&r.out) r.out.textContent=x.t}); return t;
+}
+function comp(p,upd){
+  var cm=secCost(p.mat,upd), ce=secCost(p.ext,upd), rend=Math.max(1,Math.floor(num(p.rend))||1);
+  var ci=cm/rend, cu=ci+ce, d=cu*DESP, l=cu*LUCRO;
+  return {cm:cm,rend:rend,ci:ci,ce:ce,cu:cu,d:d,l:l,preco:Math.ceil((cu+d+l)*100-1e-9)/100};
+}
+function calc(){
+  var r=comp(cur,true), ids=["s1","s2","s3","s4","s5","s6","s7"], vals=[r.cm,r.ci,r.ce,r.cu,r.d,r.l,r.preco];
+  ids.forEach(function(id,i){$("#"+id).textContent=brl(vals[i])});
+  $("#save").disabled=!(cur.nome.trim()&&r.cu>0);
+}
+
+function el(t,c){var e=document.createElement(t); if(c) e.className=c; return e}
+function lab(t){var s=el("span","l"); s.textContent=t; return s}
+function field(cls,ph,val,mode,cb){
+  var i=el("input",cls); i.placeholder=ph; i.value=val; if(mode) i.inputMode=mode;
+  i.addEventListener("input",function(){cb(i.value);calc()}); return i;
+}
+function pair(label,ph,r,kf,uf){
+  var w=el("div"), p=el("div","pair");
+  p.appendChild(field("",ph,r[kf],"decimal",function(v){r[kf]=v}));
+  var s=el("select"); UN.forEach(function(u){var o=el("option"); o.value=u; o.textContent=u; if(u===r[uf]) o.selected=true; s.appendChild(o)});
+  s.addEventListener("change",function(){r[uf]=s.value; calc()});
+  p.appendChild(s); w.appendChild(lab(label)); w.appendChild(p); return w;
+}
+function draw(k){
+  var box=$("#"+k); box.innerHTML="";
+  cur[k].forEach(function(r,i){
+    var it=el("div","item");
+    it.appendChild(field("m",PH[k][0],r.m,"",function(v){r.m=v}));
+    var g=el("div","g2");
+    g.appendChild(pair(k==="mat"?"Usei na receita":"Uso em 1 unidade",PH[k][1],r,"a","ua"));
+    g.appendChild(pair("Veio na embalagem",PH[k][2],r,"b","ub"));
+    it.appendChild(g);
+    var ln=el("div","line"), w=el("div");
+    w.appendChild(lab("Paguei na embalagem (R$)")); w.appendChild(field("",PH[k][3],r.v,"decimal",function(v){r.v=v}));
+    var x=el("button","x"); x.type="button"; x.textContent="×"; x.setAttribute("aria-label","Remover");
+    x.addEventListener("click",function(){cur[k].splice(i,1); if(!cur[k].length) cur[k].push(newRow(k)); draw(k); calc()});
+    ln.appendChild(w); ln.appendChild(x); it.appendChild(ln);
+    r.out=el("div","out"); it.appendChild(r.out); box.appendChild(it);
+  });
+}
+$("#addmat").addEventListener("click",function(){cur.mat.push(newRow("mat")); draw("mat"); calc()});
+$("#addext").addEventListener("click",function(){cur.ext.push(newRow("ext")); draw("ext"); calc()});
+$("#nome").addEventListener("input",function(){cur.nome=this.value; calc()});
+$("#rend").addEventListener("input",function(){cur.rend=this.value; calc()});
+
+function readAll(){try{var a=JSON.parse(localStorage.getItem(KEY)||"[]"); return Array.isArray(a)?a:[]}catch(e){return []}}
+function writeAll(a){try{localStorage.setItem(KEY,JSON.stringify(a)); return true}catch(e){return false}}
+function cr(r){return {m:r.m,a:r.a,ua:r.ua,b:r.b,ub:r.ub,v:r.v}}
+function keepRows(list){return list.filter(function(r){return r.m||r.a||r.b||r.v}).map(cr)}
+
+function renderList(){
+  var box=$("#lista"), a=readAll().sort(function(x,y){return x.nome.localeCompare(y.nome,"pt-BR")});
+  box.innerHTML="";
+  if(!a.length){var e=el("p","sub"); e.textContent="Nenhum produto salvo ainda."; box.appendChild(e); return}
+  a.forEach(function(p){
+    var r=comp({mat:p.mat,ext:p.ext,rend:p.rend}), row=el("div","prod"), t=el("div","t");
+    var b=el("b"); b.textContent=p.nome; var s=el("span"); s.textContent=brl(r.preco)+" por unidade, rende "+r.rend;
+    t.appendChild(b); t.appendChild(s);
+    var ab=el("button","sm"); ab.type="button"; ab.textContent="Abrir"; ab.addEventListener("click",function(){openProd(p)});
+    var db=el("button","sm del"); db.type="button"; db.textContent="Excluir";
+    db.addEventListener("click",function(){
+      if(db.dataset.ok!=="1"){db.dataset.ok="1"; db.textContent="Confirmar"; setTimeout(function(){db.dataset.ok=""; db.textContent="Excluir"},3000); return}
+      writeAll(readAll().filter(function(x){return x.id!==p.id}));
+      if(cur.id===p.id){cur.id=null; $("#modo").textContent="(novo)"}
+      msg("Produto excluído."); renderList();
+    });
+    row.appendChild(t); row.appendChild(ab); row.appendChild(db); box.appendChild(row);
+  });
+}
+function setCur(c){
+  cur=c; ["mat","ext"].forEach(function(k){if(!cur[k].length) cur[k].push(newRow(k))});
+  $("#nome").value=cur.nome; $("#rend").value=cur.rend;
+  $("#modo").textContent=cur.id?"(editando produto salvo)":"(novo)";
+  draw("mat"); draw("ext"); calc();
+}
+function openProd(p){
+  setCur({id:p.id,nome:p.nome,rend:p.rend,mat:p.mat.map(function(r){var x=cr(r); x.out=null; return x}),ext:p.ext.map(function(r){var x=cr(r); x.out=null; return x})});
+  msg("Editando: "+p.nome+". Depois de mudar os valores, toque em Salvar produto.");
+  $("#editor").scrollIntoView({behavior:"smooth"});
+}
+$("#novo").addEventListener("click",function(){setCur(blank()); msg("Novo produto."); $("#editor").scrollIntoView({behavior:"smooth"})});
+
+$("#save").addEventListener("click",function(){
+  if(!cur.nome.trim()) return;
+  var a=readAll(), id=cur.id||(Date.now().toString(36)+Math.random().toString(36).slice(2,6));
+  var p={id:id,nome:cur.nome.trim(),rend:cur.rend,mat:keepRows(cur.mat),ext:keepRows(cur.ext)};
+  var i=a.findIndex(function(x){return x.id===id});
+  if(i>-1) a[i]=p; else a.push(p);
+  if(!writeAll(a)){msg("Não foi possível salvar neste navegador."); return}
+  cur.id=id; $("#modo").textContent="(editando produto salvo)";
+  msg("Produto salvo: "+p.nome+"."); renderList();
+});
+
+setCur(cur); renderList();
+})();
+</script>
+</body>
+</html>
